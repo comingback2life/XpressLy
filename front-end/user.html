@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <title>XpressLy-Faster Money Tranfer</title>
+
+  <!-- Icons -->
+  <link rel="shortcut icon" type="img/logo1.png" href="img/logoP1.png">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Vadodara&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/07ba57a91a.js" crossorigin="anonymous"></script>
+  
+  <!-- Bootstrap CSS -->
+  <link href="bootstrap/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="bootstrap/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="bootstrap/aos/aos.css" rel="stylesheet">
+
+  <!-- Custom CSS-->
+  <link rel="stylesheet" href="user.css">
+
+</head>
+
+<body>
+  <!--- Header--->
+  <header id="header" class="header fixed-top">
+    <div class="container-fluid container-xl d-flex align-items-center justify-content-between">
+
+      <a href="index.html" class="logo d-flex align-items-center">
+        <img src="img/logoP1.png" alt="">
+        <span>pressLy</span>
+      </a>
+
+      <nav id="navbar" class="navbar">
+        <ul>
+          <li><a class="nav-link scrollto " href="index.html">Home</a></li>
+          <li><a class="nav-link scrollto " href="#home">Send Money</a></li>
+          <li><a class="nav-link scrollto " href="#home">Withdraw Money</a></li>
+      
+          <!-- user login dropdown start-->
+          <li class="dropdown">
+            <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+              <span class="profile-ava">
+                  <img alt="" src="img/mail-avatar.jpg">
+              </span>
+              <span class="username">My Account</span>
+              <b class="caret"></b>
+            </a>
+            <ul class="dropdown-menu logout">
+              <div class="log-arrow-up"></div>
+              <li class="eborder-top"> <a href="#"><i class="fas fa-user-alt"></i> My Profile</a></li>
+              <li><a href="#"><i class="fas fa-inbox"></i> My Inbox</a> </li>
+              <li><a href="#"><i class="fas fa-history"></i>Transactions</a></li>
+              <li><a href="login.html" class="logoutBtn "><i class="icon_key_alt"></i> Log Out</a> </li>
+            </ul>
+          </li>
+          <!-- user login dropdown end -->
+        </ul>
+        <i class="bi bi-list mobile-nav-toggle"></i>
+      </nav><!-- .navbar -->
+
+    </div>
+  </header><!-- End Header -->
+
+<!-- Home Section -->
+  <section id="home" class="home d-flex align-items-center">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-6 d-flex flex-column justify-content-center">
+          <div class="col-lg-6 exchangeBox d-flex flex-column" data-aos="fade-left" data-aos-delay="200">
+            <div class="testContainer">
+              <div class="currency">
+                <ul class="balance-view">
+                  <li class="available-balance">
+                    <label>Available Balance</label>
+                    <h3>
+                      <strong class="amount">$5000</strong>
+                    </h3>
+                    <div class="load-balance">+</div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6 hero-img" data-aos="zoom-out" data-aos-delay="200">
+          <img src="img/transfer3.svg" class="img-fluid" alt="">
+        </div>
+        </div>
+      </div>
+    </div>
+  </section><!-- End Home -->
+
+<!--Organization Section-->
+  <section id="service-box" class=" service-box d-flex align-items-center">
+    <div class="container">
+      <div class="row">
+
+        <div class="box-heading">
+          <h1>Organizations</h1>
+        </div>
+        
+        <div class="card col" style="width: 15rem;">
+          <img class="card-img-top" src="img/features.png" alt="Card image cap">
+          <div class="card-body">
+            <h5 class="card-title">Organization Name</h5>
+            <!-- Button trigger modal -->
+            <a href="#" class="btn"data-bs-toggle="modal" data-bs-target="#exampleModalCenter">Send Money</a>
+          </div>
+        </div>
+        <div class="card col" style="width: 15rem;">
+          <img class="card-img-top" src="img/features.png" alt="Card image cap">
+          <div class="card-body">
+            <h5 class="card-title">Organization Name</h5>
+            <a href="#" class="btn"data-bs-toggle="modal" data-bs-target="#exampleModalCenter">Send Money</a>
+          </div>
+        </div>
+        <div class="card col" style="width: 15rem;">
+          <img class="card-img-top" src="img/features.png" alt="Card image cap">
+          <div class="card-body">
+            <h5 class="card-title">Organization Name</h5>
+            <a href="#" class="btn"data-bs-toggle="modal" data-bs-target="#exampleModalCenter">Send Money</a>
+          </div>
+        </div>
+        <div class="card col" style="width: 15rem;">
+          <img class="card-img-top" src="img/features.png" alt="Card image cap">
+          <div class="card-body">
+            <h5 class="card-title">Organization Name</h5>
+            <a href="#" class="btn"data-bs-toggle="modal" data-bs-target="#exampleModalCenter">Send Money</a>
+          </div>
+        </div>
+      
+      </div>
+    </div>
+
+   <!-- Modal -->
+   <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLongTitle">Organization Name</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="input-field">
+            <input type="number" id="send-money" placeholder="$Enter amount" autocomplete="off" min="0"/>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-info" data-bs-dismiss="modal">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Modal End-->
+  </section><!-- End Organization -->
+
+
+  <!-- Bootstrap JS Files -->
+  <script src="bootstrap/bootstrap/js/bootstrap.bundle.js"></script>
+  <script src="bootstrap/aos/aos.js"></script>
+  <script src="bootstrap/swiper/swiper-bundle.min.js"></script>
+  <script src="bootstrap/glightbox/js/glightbox.min.js"></script>
+
+  <!-- Custom JS File -->
+  <script src="user.js"></script>
+
+</body>
+
+</html>
