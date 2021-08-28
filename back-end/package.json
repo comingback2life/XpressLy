@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "main": "index.js",
-  "author": "Samip <callmesamip@gmail.com>",
-  "license": "UNLICENSED",
+  "author": "samip <callmesamip@gmail.com>",
+  "license": "GPLv3",
   "devDependencies": {
     "@babel/preset-env": "^7.14.8",
     "babel-jest": "^27.0.6",
@@ -20,8 +20,8 @@
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "jsonwebtoken": "^8.5.1",
+    "multer": "^1.4.3",
     "mysql": "^2.18.1",
-    "mysql2": "^2.3.0",
     "nodemon": "^2.0.12"
   }
 }

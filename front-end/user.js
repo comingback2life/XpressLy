@@ -69,7 +69,7 @@
           navbarToggle.classList.toggle('bi-list')
           navbarToggle.classList.toggle('bi-x')
         }
-        scrollto(this.hash)
+        //scrollto(this.hash)
       }
     }, true)
   

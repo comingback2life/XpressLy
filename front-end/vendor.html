@@ -20,10 +20,131 @@
   <link href="bootstrap/bootstrap/css/bootstrap.min.css" rel="stylesheet">
   <link href="bootstrap/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
   <link href="bootstrap/aos/aos.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
   <!-- Custom CSS-->
   <link rel="stylesheet" href="vendor.css">
 
+	<script>
+
+		function showAlert(message, timeout) {
+			document.getElementById('alert').innerHTML = message;
+			setTimeout(() => window.location.reload(), timeout || 2000);
+		}
+
+
+		function topupVendor() {
+			// const sender = window.localStorage.getItem('username');
+			// const receiver = document.getElementById('vendorSendMoneyToUserReceiver').value;
+			// const amount = document.getElementById('vendorSendMoneyToUserAmount').value;
+			const formData = new FormData();
+			const imagefile = document.querySelector('#customFile');
+			formData.append("file", imagefile.files[0]);
+			formData.append("amount", document.getElementById('vendorTopupAmount').value);
+			formData.append("username", window.localStorage.getItem('username'));
+			axios.post('http://localhost:8080/vendors/topup', formData, {
+				headers: {
+				  'Content-Type': 'multipart/form-data'
+				}
+			}).then(response => {
+				console.log(response)
+				window.localStorage.setItem('holdBalance', response.data.holdBalance);
+				showAlert( `<div class="alert alert-success" role="alert"> ${response.data.message} </div>`)
+				window.location.reload();
+			}).catch(error => {
+				console.log(error)
+				showAlert( `<div class="alert alert-danger" role="alert"> ${error.response.data.message} </div>`)
+			})
+			// const file = document.getElementById('customFile').value
+			// axios.post('http://localhost:8080/vendors/topup', {
+			// 	file
+			// }).then(response => {
+			// 	console.log(response);
+			// 	//window.localStorage.setItem('availableBalance', response.data.availableBalance);
+			// 	//alert(response.data.message);
+			// 	//window.location.reload();
+			// }).catch(error => {
+			// 	console.log(error)
+			// 	alert(error.response.data.message);
+			// })
+		}
+
+
+		function approveTransaction(transactionId) {
+
+			axios.post('http://localhost:8080/approve', {transactionId}).then(response => {
+				window.location.reload();
+			})
+		}
+
+		function rejectTransaction(transactionId) {
+			axios.post('http://localhost:8080/reject', {transactionId}).then(response => {
+				window.location.reload();
+			})
+		}
+
+
+
+		function withdrawMoneyFromVendor() {
+			const vendor = window.localStorage.getItem('username');
+			const bankName = document.getElementById('vendorWithdrawMoneyFromVendorBankName').value;
+			const amount = document.getElementById('vendorWithdrawMoneyFromVendorAmount').value;
+			const accountNumber = document.getElementById('vendorWithdrawMoneyFromVendorAccountNumber').value;
+			const bsbNumber = document.getElementById('vendorWithdrawMoneyFromVendorBsbNumber').value;
+
+			axios.post('http://localhost:8080/vendors/withdraw', {
+				vendor, bankName, amount, accountNumber, bsbNumber
+			}).then(response => {
+				console.log(response)
+				window.localStorage.setItem('holdBalance', response.data.holdBalance);
+				showAlert( `<div class="alert alert-success" role="alert">Withdraw request initiated</div>`)
+				window.location.reload();
+				document.getElementById('holdBalance').innerHTML = window.localStorage.getItem('holdBalance')
+			}).catch(error => {
+				console.log(error)
+				showAlert( `<div class="alert alert-danger" role="alert"> ${error.response.data.message} </div>`)
+			})
+		}
+
+
+		function getTransactions() {
+			const receiver = window.localStorage.getItem('username');
+			axios.get(`http://localhost:8080/transactions/${receiver}`).then(response => {
+				console.log(response)
+
+				response.data.result.forEach(transaction => {
+					const row = document.createElement('tr');
+					let actions = `<button class="approve" onclick="approveTransaction(${transaction.id})"> <span><i class="fas fa-check-circle"></i></span> Approve</button>
+								<button class="decline" onclick="rejectTransaction(${transaction.id})"> <span><i class="fas fa-times-circle"></i></span> Decline</button>`;
+
+					if (transaction.status !== 'PENDING') {
+						actions = '';
+					}
+					row.innerHTML = `<td>${transaction.initiator}</td>
+						<td>${transaction.transactionDate}</td>
+						<td>${transaction.amount}</td>
+						<td>${transaction.id}</td>
+						<td><span class="status pending">${transaction.status}</span></td>
+						<td>
+							<div class="actions">
+								${actions}
+							</div>
+						</td>`;
+					document.getElementById('vendorTransactionsLog').appendChild(row);
+				})
+
+
+				// window.localStorage.setItem('holdBalance', response.data.holdBalance);
+				// alert('Withdraw request initiated');
+				// window.location.reload();
+				// document.getElementById('holdBalance').innerHTML = window.localStorage.getItem('holdBalance')
+			}).catch(error => {
+				console.log(error)
+				showAlert( `<div class="alert alert-danger" role="alert"> ${error.response.data.message} </div>`)
+			})
+
+		}
+	</script>
 </head>
 
 <body>
@@ -39,8 +160,8 @@
       <nav id="navbar" class="navbar">
         <ul>
             <li><a class="nav-link scrollto " href="index.html">Home</a></li>
-            <li><a class="nav-link scrollto " href="#home">Send Money</a></li>
-            <li><a class="nav-link scrollto " href="home"data-bs-toggle="modal" data-bs-target="#withdrawMoneyModel" >Withdraw Money</a></li>
+            <li><a class="nav-link scrollto " href="home" data-bs-toggle="modal" data-bs-target="#topupModal" >Send Money</a></li>
+            <li><a class="nav-link scrollto " href="home" data-bs-toggle="modal" data-bs-target="#withdrawMoneyModel" >Withdraw Money</a></li>
       
           <!-- user login dropdown start-->
           <li class="dropdown">
@@ -55,7 +176,7 @@
               <div class="log-arrow-up"></div>
               <li class="eborder-top"> <a href="#"><i class="fas fa-user-alt"></i> My Profile</a></li>
               <li><a href="#"><i class="fas fa-history"></i>Transactions</a></li>
-              <li><a href="login.html" class="logoutBtn "><i class="icon_key_alt"></i> Log Out</a> </li>
+              <li><a href="signup.html" class="logoutBtn "><i class="icon_key_alt"></i> Log Out</a> </li>
             </ul>
           </li>
           <!-- user login dropdown end -->
@@ -78,7 +199,7 @@
                   <li class="available-balance">
                     <label>Available Balance</label>
                     <h3>
-                      <strong class="amount">$5000</strong>
+                      <strong id="availableBalance" class="amount">$5000</strong>
                     </h3>
                     <div class="load-balance" data-bs-toggle="modal" data-bs-target="#exampleModalCenter">+</div>
                     
@@ -98,7 +219,7 @@
   </section><!-- End Home -->
 
     <!-- TopUP Modal  -->
-   <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+   <div class="modal fade" id="topupModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
       <div class="modal-content">
         <div class="modal-header">
@@ -108,7 +229,7 @@
         <div class="modal-body">
             <div class="input-field">
                 <i class="fas fa-dollar-sign"></i>
-                <input type="text" id="send-money" placeholder="Enter Amount" required/>
+                <input type="text" id="vendorTopupAmount" placeholder="Enter Amount" required/>
             </div>
 
             <label class="form-label" for="customFile">Upload digital slip</label>
@@ -117,7 +238,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-modal">Top Up</button>
+          <button type="button" class="btn btn-modal" onclick="topupVendor()">Top Up</button>
         </div>
       </div>
     </div>
@@ -135,25 +256,25 @@
         <div class="modal-body">
             <div class="input-field">
                 <i class="fas fa-user"></i>
-                <input type="text" placeholder="Bank Name" required/>
+                <input id="vendorWithdrawMoneyFromVendorBankName" type="text" placeholder="Bank Name" required/>
             </div>
             <div class="input-field">
                 <i class="fas fa-dollar-sign"></i>
-                <input type="text" id="send-money" placeholder="Enter Amount" required/>
+                <input type="text" id="vendorWithdrawMoneyFromVendorAmount" placeholder="Enter Amount" required/>
             </div>
             <div class="input-field">
                 <i class="fas fa-key"></i>
-                <input type="text" placeholder="BSB Number" required/>
+                <input id="vendorWithdrawMoneyFromVendorBsbNumber" type="text" placeholder="BSB Number" required/>
             </div>
             <div class="input-field">
                 <i class="fas fa-key"></i>
-                <input type="text" placeholder="Account Number" required/>
+                <input id="vendorWithdrawMoneyFromVendorAccountNumber" type="text" placeholder="Account Number" required/>
             </div>
 
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-modal">Withdraw</button>
+          <button type="button" class="btn btn-modal" onclick="withdrawMoneyFromVendor()">Withdraw</button>
         </div>
       </div>
     </div>
@@ -173,44 +294,15 @@
         <table class="table table-dark table-borderless">
             <thead>
                 <tr>
-                    <th scope="col">Mode</th>
+                    <th scope="col">User</th>
                     <th scope="col">Date</th>
-                    <th scope="col" class="text-right">Amount</th>
+                    <th scope="col">Amount</th>
+                    <th scope="col">ID</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Action</th>
                 </tr>
             </thead>
-            <tbody>
-                <tr>
-                    <td><span class="fa fa-cc-mastercard"></span></td>
-                    <td class="text-muted">12 Jul 2020, 12:30 PM</td>
-                    <td class="d-flex justify-content-end align-items-center"> $100 </td>
-                </tr>
-                <tr>
-                    <td><span class="fa fa-cc-mastercard"></span></td>
-                    <td class="text-muted">11 Jul 2020, 2:00 PM</td>
-                    <td class="d-flex justify-content-end align-items-center"> $100 </td>
-                </tr>
-
-                <tr>
-                    <td><span class="fa fa-cc-mastercard"></span></td>
-                    <td class="text-muted">12 May 2020, 4:30 PM</td>
-                    <td class="d-flex justify-content-end align-items-center"> $100 </td>
-                </tr>
-                <tr>
-                    <td><span class="fa fa-cc-visa"></span></td>
-                    <td class="text-muted">11 May 2020, 5:30 PM</td>
-                    <td class="d-flex justify-content-end align-items-center">$100 </td>
-                </tr>
-                <tr>
-                    <td><span class="fa fa-cc-mastercard"></span></td>
-                    <td class="text-muted">10 May 2020, 01:30 PM</td>
-                    <td class="d-flex justify-content-end align-items-center">$100 </td>
-                </tr>
-                <tr>
-                    <td><span class="fa fa-cc-visa"></span></td>
-                    <td class="text-muted">09 May 2020, 01:30 PM</td>
-                    <td class="d-flex justify-content-end align-items-center">$100</td>
-                </tr>
-            </tbody>
+            <tbody id="vendorTransactionsLog"></tbody>
         </table>
     </div>
     <div class="d-flex justify-content-between align-items-center results"> <span class="pl-md-3">Showing<b class="text-white"> 1-7 </b> trasactions</span>
@@ -224,6 +316,7 @@
         </div>
     </div>
 </div>  <!-- Transaction History End -->
+   <div id="alert" style="position:fixed; bottom:0; right:0; left: 0;"></div>
 
   <!-- Bootstrap JS Files -->
   <script src="bootstrap/bootstrap/js/bootstrap.bundle.js"></script>
@@ -233,6 +326,11 @@
 
   <!-- Custom JS File -->
   <script src="vendor.js"></script>
+	<script>
+		document.getElementById('availableBalance').innerHTML = window.localStorage.getItem('availableBalance')
+		getTransactions();
+	</script>
+
 
 </body>
 

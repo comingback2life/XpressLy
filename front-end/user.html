@@ -20,10 +20,142 @@
   <link href="bootstrap/bootstrap/css/bootstrap.min.css" rel="stylesheet">
   <link href="bootstrap/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
   <link href="bootstrap/aos/aos.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
 
   <!-- Custom CSS-->
   <link rel="stylesheet" href="user.css">
 
+	<script>
+		var selectedOrg;
+
+//		document.getElementById('exampleModalCenter').addEventListener('show.bs.modal', () => {
+//			console.log('hereherehe');
+//		})
+//
+//		$('#exampleModalCenter').on('show.bs.modal', function (event) {
+//			console.log('ok')
+//			console.log(event.relatedTarget);
+//		});
+		// $('#exampleModalCenter').on('show.bs.modal', function(e) {
+
+
+		// 	console.log('hererehejeh')
+		// 	//get data-id attribute of the clicked element
+		// 	let bookId = $(e.relatedTarget).data('id');
+		// 	console.log('bookid', bookId);
+
+		// 	//populate the textbox
+		// 	//$(e.currentTarget).find('input[name="bookId"]').val(bookId);
+		// });
+		function getAvailableBalance() {
+			return window.localStorage.getItem('availableBalance');
+		}
+
+		function showAlert(message, timeout) {
+			document.getElementById('alert').innerHTML = message;
+			setTimeout(() => window.location.reload(), timeout || 2000);
+		}
+
+		function sendMoneyToUser() {
+			const sender = window.localStorage.getItem('username');
+			const receiver = document.getElementById('userSendMoneyToUserReceiver').value;
+			const amount = document.getElementById('userSendMoneyToUserAmount').value;
+			axios.post('http://localhost:8080/users/send', {
+				sender, receiver, amount
+			}).then(response => {
+				console.log(response);
+				showAlert( `<div class="alert alert-success" role="alert"> ${response.data.message} </div>`)
+				window.localStorage.setItem('availableBalance', response.data.availableBalance);
+			}).catch(error => {
+				console.log(error)
+				showAlert( `<div class="alert alert-danger" role="alert"> ${error.response.data.message} </div>`)
+			})
+		}
+
+		function sendMoneyToOrg() {
+			const sender = window.localStorage.getItem('username');
+			const receiver = window.localStorage.getItem('selectedOrg');
+			console.log(receiver, 'receiver');
+			const amount = document.getElementById('userSendMoneyToOrgAmount').value;
+			axios.post('http://localhost:8080/users/send/org', {
+				sender, receiver, amount
+			}).then(response => {
+				console.log(response);
+				window.localStorage.setItem('availableBalance', response.data.availableBalance);
+				showAlert( `<div class="alert alert-success" role="alert"> ${response.data.message} </div>`)
+			}).catch(error => {
+				console.log(error)
+				showAlert( `<div class="alert alert-danger" role="alert"> ${error.response.data.message} </div>`)
+			})
+		}
+
+
+		function withdrawMoneyFromUser() {
+			const user = window.localStorage.getItem('username');
+			const vendor = document.getElementById('userWithdrawMoneyFromUserVendor').value;
+			const amount = document.getElementById('userWithdrawMoneyFromUserAmount').value;
+			axios.post('http://localhost:8080/users/withdraw', {
+				user, vendor, amount
+			}).then(response => {
+				console.log(response)
+				window.localStorage.setItem('holdBalance', response.data.holdBalance);
+				window.localStorage.setItem('code', response.data.code);
+				showAlert( `<div class="alert alert-success" role="alert"> ${response.data.message} </div>`, 5000)
+				document.getElementById('holdBalance').innerHTML = window.localStorage.getItem('holdBalance')
+			}).catch(error => {
+				console.log(error)
+				showAlert( `<div class="alert alert-danger" role="alert"> ${error.response.data.message} </div>`)
+			})
+		}
+
+		function getVendorList() {		}
+
+
+		function displaySendMoneyForm() {
+			document.getElementById('sendMoney').style.display = 'block';
+			document.getElementById('withdrawMoney').style.display = 'none';
+		}
+
+		function displayWithdrawMoneyForm() {
+			axios.get('http://localhost:8080/vendors').then(response => {
+				for (let i=0; i<response.data.result.length; i++) {
+					const option = document.createElement('option');
+					option.innerHTML = response.data.result[i].username;
+					document.getElementById('userWithdrawMoneyFromUserVendor').appendChild(option)
+				}
+			}).catch(error => {
+				console.log(error)
+			})
+
+
+		}
+
+		function selectOrg(org) {
+			window.localStorage.setItem('selectedOrg', org);
+		}
+
+		function getOrganizations() {
+			axios.get('http://localhost:8080/organizations').then(response => {
+				console.log(response.data)
+				response.data.forEach(d => {
+					const card = document.createElement('div');
+					card.innerHTML = `<div class="card col" style="width: 15rem;">
+					  <img class="card-img-top" src="img/features.png" alt="Card image cap">
+					  <div class="card-body">
+						<h5 class="card-title">${d.name}</h5>
+						<!-- Button trigger modal -->
+						<button href="#exampleModalCenter" class="btn text-white" style="background-color: #6f42c1; border-radius: 20px;" data-bs-toggle="modal" data-bs-target="#exampleModalCenter" onclick="selectOrg('${d.username}')">Send Money</button>
+					  </div>
+					</div>`
+					document.getElementById('orgs').appendChild(card);
+				})
+			}).catch(error => {
+				console.log(error)
+			})
+
+		}
+	</script>
 </head>
 
 <body>
@@ -38,9 +170,9 @@
 
       <nav id="navbar" class="navbar">
         <ul>
-          <li><a class="nav-link scrollto " href="index.html">Home</a></li>
-          <li><a class="nav-link scrollto " href="#home">Send Money</a></li>
-          <li><a class="nav-link scrollto " href="#home">Withdraw Money</a></li>
+          <li><a class="nav-link scrollto " href="user.html">Home</a></li>
+          <li><a class="nav-link scrollto " href="#home" data-bs-toggle="modal" data-bs-target="#userSendMoneyToUserModal">Send Money</a></li>
+          <li><a class="nav-link scrollto " href="#home" data-bs-toggle="modal" data-bs-target="#userWithdrawMoneyToUserModal" onclick="displayWithdrawMoneyForm()">Withdraw Money</a></li>
       
           <!-- user login dropdown start-->
           <li class="dropdown">
@@ -56,7 +188,7 @@
               <li class="eborder-top"> <a href="#"><i class="fas fa-user-alt"></i> My Profile</a></li>
               <li><a href="#"><i class="fas fa-inbox"></i> My Inbox</a> </li>
               <li><a href="#"><i class="fas fa-history"></i>Transactions</a></li>
-              <li><a href="login.html" class="logoutBtn "><i class="icon_key_alt"></i> Log Out</a> </li>
+              <li><a href="signup.html" class="logoutBtn "><i class="icon_key_alt"></i> Log Out</a> </li>
             </ul>
           </li>
           <!-- user login dropdown end -->
@@ -79,7 +211,7 @@
                   <li class="available-balance">
                     <label>Available Balance</label>
                     <h3>
-                      <strong class="amount">$5000</strong>
+                      <strong id="availableBalance" class="amount">$5000</strong>
                     </h3>
                     <div class="load-balance">+</div>
                   </li>
@@ -105,38 +237,10 @@
         <div class="box-heading">
           <h1>Organizations</h1>
         </div>
-        
-        <div class="card col" style="width: 15rem;">
-          <img class="card-img-top" src="img/features.png" alt="Card image cap">
-          <div class="card-body">
-            <h5 class="card-title">Organization Name</h5>
-            <!-- Button trigger modal -->
-            <a href="#" class="btn"data-bs-toggle="modal" data-bs-target="#exampleModalCenter">Send Money</a>
-          </div>
-        </div>
-        <div class="card col" style="width: 15rem;">
-          <img class="card-img-top" src="img/features.png" alt="Card image cap">
-          <div class="card-body">
-            <h5 class="card-title">Organization Name</h5>
-            <a href="#" class="btn"data-bs-toggle="modal" data-bs-target="#exampleModalCenter">Send Money</a>
-          </div>
-        </div>
-        <div class="card col" style="width: 15rem;">
-          <img class="card-img-top" src="img/features.png" alt="Card image cap">
-          <div class="card-body">
-            <h5 class="card-title">Organization Name</h5>
-            <a href="#" class="btn"data-bs-toggle="modal" data-bs-target="#exampleModalCenter">Send Money</a>
-          </div>
-        </div>
-        <div class="card col" style="width: 15rem;">
-          <img class="card-img-top" src="img/features.png" alt="Card image cap">
-          <div class="card-body">
-            <h5 class="card-title">Organization Name</h5>
-            <a href="#" class="btn"data-bs-toggle="modal" data-bs-target="#exampleModalCenter">Send Money</a>
-          </div>
-        </div>
-      
-      </div>
+		<div id="orgs">
+
+		</div>
+	  </div>
     </div>
 
    <!-- Modal -->
@@ -149,17 +253,68 @@
         </div>
         <div class="modal-body">
           <div class="input-field">
-            <input type="number" id="send-money" placeholder="$Enter amount" autocomplete="off" min="0"/>
+            <input type="number" id="userSendMoneyToOrgAmount" placeholder="$Enter amount" autocomplete="off" min="0"/>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-info" data-bs-dismiss="modal">Send</button>
+          <button type="button" class="btn btn-info" data-bs-dismiss="modal" onclick="sendMoneyToOrg()">Send</button>
         </div>
       </div>
     </div>
   </div>
   <!-- Modal End-->
+
+  <div class="modal fade" id="userSendMoneyToUserModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Send Money</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+		  <div class="input-field">
+            <input type="text" id="userSendMoneyToUserReceiver" placeholder="Receiver"/>
+          </div>
+          <div class="input-field">
+            <input type="number" id="userSendMoneyToUserAmount" placeholder="$Enter amount" autocomplete="off" min="0"/>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-info" data-bs-dismiss="modal" onclick="sendMoneyToUser()">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="userWithdrawMoneyToUserModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Withdraw Money</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+			<div class="mb-3">
+			  <label for="userWithdrawMoneyFromUserVendor" class="form-label">Vendor</label>
+				<select id="userWithdrawMoneyFromUserVendor" class="form-select form-select-md" aria-label=".form-select-sm example"></select>
+			</div>
+		  <!-- <div class="input-field">
+          //   <input type="select" id="userWithdrawMoneyFromUserVendor" placeholder="Vendor"/>
+		  // </div> -->
+          <div class="input-field">
+            <input type="number" id="userWithdrawMoneyFromUserAmount" placeholder="$Enter amount" autocomplete="off" min="0"/>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-info" data-bs-dismiss="modal" onclick="withdrawMoneyFromUser()">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+   <div id="alert" style="position:fixed; bottom:0; right:0; left: 0;"></div>
   </section><!-- End Organization -->
 
 
@@ -171,6 +326,11 @@
 
   <!-- Custom JS File -->
   <script src="user.js"></script>
+	<script>
+		console.log(window.localStorage.getItem('availableBalance'))
+		document.getElementById('availableBalance').innerHTML = window.localStorage.getItem('availableBalance') || 0
+		getOrganizations();
+	</script>
 
 </body>
 

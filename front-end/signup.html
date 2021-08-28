@@ -6,11 +6,108 @@
     <link rel="shortcut icon" type="img/logo1.png" href="img/logoP1.png">
     <link href="bootstrap/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
     <script src="https://kit.fontawesome.com/07ba57a91a.js" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
 
     <title>XpressLy SignUp</title>
     
     <!-- Custom CSS-->
     <link rel="stylesheet" href="signup.css">
+
+	<script>
+		function signupUser() {
+			const username = document.getElementById("userSignupUsername").value;
+			const password = document.getElementById("userSignupPassword").value;
+			const confirmPassword = document.getElementById("userSignupConfirmPassword").value;
+			const fullname = document.getElementById("userSignupFullName").value;
+			const email = document.getElementById("userSignupEmail").value;
+
+			if (password === confirmPassword) {
+				axios.post('http://localhost:8080/users', {
+					username, password, fullname, email
+				}).then(response => {
+					window.location.reload()
+				}).catch(error => {
+					alert(error.response.data.message);
+				})
+			} else {
+				alert('Passwords do not match');
+			}
+		}
+
+		function signupVendor() {
+			const username = document.getElementById("vendorSignupUsername").value;
+			const password = document.getElementById("vendorSignupPassword").value;
+			const confirmPassword = document.getElementById("vendorSignupConfirmPassword").value;
+			const vendorName = document.getElementById("vendorSignupName").value;
+			const email = document.getElementById("vendorSignupEmail").value;
+
+			if (password === confirmPassword) {
+				axios.post('http://localhost:8080/vendors', {
+					username, password, vendorName, email
+				}).then(response => {
+					window.location.reload()
+				}).catch(error => {
+					alert(error.response.data.message);
+				})
+			} else {
+				alert('Passwords do not match');
+			}
+		}
+
+		function signupOrg() {
+			const name = document.getElementById("orgSignupName").value;
+			const representativeFullName = document.getElementById("orgSignupRepresentativeFullName").value;
+			const username = document.getElementById("orgSignupUsername").value;
+			const password = document.getElementById("orgSignupPassword").value;
+			const confirmPassword = document.getElementById("orgSignupConfirmPassword").value;
+			const phoneNumber = document.getElementById("orgSignupPhoneNumber").value;
+			const email = document.getElementById("orgSignupEmail").value;
+
+			if (password === confirmPassword) {
+				axios.post('http://localhost:8080/organizations', {
+					name, representativeFullName, username, password, phoneNumber, email
+				}).then(response => {
+					window.location.reload()
+				}).catch(error => {
+					alert(error.response.data.message);
+				})
+			} else {
+				alert('Passwords do not match');
+			}
+		}
+
+
+		function loginUser() {
+			const username = document.getElementById("userLoginUsername").value;
+			const password = document.getElementById("userLoginPassword").value;
+			const isVendor = document.getElementById("userLoginIsVendor").checked;
+			const isOrganization = document.getElementById("userLoginIsOrganization").checked;
+			let url
+
+			axios.post('http://localhost:8080/login', {
+				username, password, isVendor, isOrganization
+			}).then(response => {
+				console.log(response.data);
+				window.localStorage.setItem('token', response.data.token);
+				window.localStorage.setItem('username', username);
+				window.localStorage.setItem('fullName', response.data.fullName);
+				window.localStorage.setItem('availableBalance', response.data.availableBalance);
+				window.localStorage.setItem('holdBalance', response.data.holdBalance);
+
+				if (isVendor)
+					window.location.replace('./vendor.html');
+				else if (isOrganization)
+					window.location.replace('./org.html');
+				else if (username === 'admin')
+					window.location.replace('./admin.html');
+				else
+					window.location.replace('./user.html');
+			}).catch(error => {
+				alert(error.response.data.message)
+			})
+		}
+	</script>
 </head>
 
 <body>
@@ -19,17 +116,31 @@
         <div class="forms-container">
             <div class="signin-signup">
                 <!------------ Sign IN Form ----------->          
-                <form action="" class="sign-in-form">
+                <form action="" class="sign-in-form" onsubmit="loginUser()">
                     <h2 class="title">Sign in</h2>
                     <div class="input-field">
                         <i class="fas fa-user"></i>
-                        <input type="text" placeholder="Username" required>
+                        <input id="userLoginUsername" type="text" placeholder="Username" required>
                     </div>
 
                     <div class="input-field">
                         <i class="fas fa-lock"></i>
-                        <input type="password" placeholder="Password" required>
+                        <input id="userLoginPassword" type="password" placeholder="Password" required>
                     </div>
+					<div class="row">
+						<div class="col-4 form-check">
+							<input type="radio" class="form-check-input" id="userLoginIsUser">
+							<label class="form-check-label" for="userLoginIsUser">User</label>
+						</div>
+						<div class="col-4 form-check">
+							<input type="radio" class="form-check-input" id="userLoginIsVendor">
+							<label class="form-check-label" for="userLoginIsVendor">Vendor</label>
+						</div>
+						<div class="col-4 form-check">
+							<input type="radio" class="form-check-input" id="userLoginIsOrganization">
+							<label class="form-check-label" for="userLoginIsOrganization">Organization</label>
+						</div>
+					</div>
                     <input type="submit" value="Login" class="btn solid">
 
                     <!-- SOCIAL MEDIA LOGIN -->
@@ -41,27 +152,27 @@
                 <!------------ Sign IN Form End ----------->   
 
                 <!------------ Sign Up Form ----------->
-                <form action="#" class="sign-up-form">
+                <form action="#" class="sign-up-form" onsubmit="signupUser()">
                     <h2 class="title">Sign up</h2>
                     <div class="input-field">
                         <i class="fas fa-signature"></i>
-                        <input type="text" placeholder="Full Name" />
+                        <input id="userSignupFullName" type="text" placeholder="Full Name" />
                     </div>
                     <div class="input-field">
                       <i class="fas fa-user"></i>
-                      <input type="text" placeholder="Username" required/>
+                      <input id="userSignupUsername" type="text" placeholder="Username" required/>
                     </div>
                     <div class="input-field">
                       <i class="fas fa-envelope"></i>
-                      <input type="email" placeholder="Email" required />
+                      <input id="userSignupEmail" type="email" placeholder="Email" required />
                     </div>
                     <div class="input-field">
                       <i class="fas fa-lock"></i>
-                      <input type="password" placeholder="Password" required />
+                      <input id="userSignupPassword" type="password" placeholder="Password" required />
                     </div>
                     <div class="input-field">
                         <i class="fas fa-lock"></i>
-                        <input type="password" placeholder="Confirm Password" required />
+                        <input id="userSignupConfirmPassword" type="password" placeholder="Confirm Password" required />
                     </div>
                     <input type="submit" class="btn solid" value="Sign up" />
                     <p class="social-text">Or Sign up as:</p>
@@ -78,33 +189,33 @@
                     <h2 class="title">Sign up</h2>
                     <div class="input-field">
                         <i class="fas fa-signature"></i>
-                        <input type="text" placeholder="Organization Name"  />
+                        <input id="orgSignupName" type="text" placeholder="Organization Name"  />
                     </div>
                     <div class="input-field">
                       <i class="fas fa-user"></i>
-                      <input type="text" placeholder="Reprentative Full Name" />
+                      <input id="orgSignupRepresentativeFullName" type="text" placeholder="Reprentative Full Name" />
                     </div>
                     <div class="input-field">
                         <i class="fas fa-user"></i>
-                        <input type="text" placeholder="Username" required />
+                        <input id="orgSignupUsername" type="text" placeholder="Username" required />
                       </div>
                     <div class="input-field">
                         <i class="fas fa-user"></i>
-                        <input type="tel" id="phone" name="phone" placeholder="000-000-0000" pattern="[0-9][0-9][0-9]" required />
+                        <input id="orgSignupPhoneNumber" type="tel" name="phone" placeholder="000-000-0000" pattern="[0-9]*-[0-9]*-[0-9]*" required />
                       </div>
                     <div class="input-field">
                       <i class="fas fa-envelope"></i>
-                      <input type="email" placeholder="Email" />
+                      <input id="orgSignupEmail" type="email" placeholder="Email" />
                     </div>
                     <div class="input-field">
                       <i class="fas fa-lock"></i>
-                      <input type="password" placeholder="Password" required />
+                      <input id="orgSignupPassword" type="password" placeholder="Password" required />
                     </div>
                     <div class="input-field">
                         <i class="fas fa-lock"></i>
-                        <input type="password" placeholder="Confirm Password" required />
+                        <input id="orgSignupConfirmPassword" type="password" placeholder="Confirm Password" required />
                     </div>
-                    <input type="submit" class="btn solid" value="Sign up" />
+                    <input type="submit" class="btn solid" onclick="signupOrg()" value="Sign up" />
                     <p class="social-text">Or Sign up as:</p>
                     <div class="social-links">
                         <a  id="link-signup" href="#" class="social-icon"><i class="fas fa-user-shield"></i></a>
@@ -116,27 +227,27 @@
                 <!------------ Sign Up Form Organization End ----------->
 
                  <!------------ Sign Up Form Vendor----------->
-                 <form action="#" class="sign-up-form-vendor">
+                 <form action="#" class="sign-up-form-vendor" onsubmit="signupVendor()">
                     <h2 class="title">Sign up</h2>
                     <div class="input-field">
                         <i class="fas fa-signature"></i>
-                        <input type="text" placeholder="Vendor Name" />
+                        <input id="vendorSignupName" type="text" placeholder="Vendor Name" />
                     </div>
                     <div class="input-field">
                       <i class="fas fa-user"></i>
-                      <input type="text" placeholder="Username" required/>
+                      <input id="vendorSignupUsername" type="text" placeholder="Username" required/>
                     </div>
                     <div class="input-field">
                       <i class="fas fa-envelope"></i>
-                      <input type="email" placeholder="Email" required />
+                      <input id="vendorSignupEmail" type="email" placeholder="Email" required />
                     </div>
                     <div class="input-field">
                       <i class="fas fa-lock"></i>
-                      <input type="password" placeholder="Password" required />
+                      <input id="vendorSignupPassword" type="password" placeholder="Password" required />
                     </div>
                     <div class="input-field">
                         <i class="fas fa-lock"></i>
-                        <input type="password" placeholder="Confirm Password" required />
+                        <input id="vendorSignupConfirmPassword" type="password" placeholder="Confirm Password" required />
                     </div>
                     <input type="submit" class="btn solid" value="Sign up" />
                     <p class="social-text">Or Sign up as:</p>
