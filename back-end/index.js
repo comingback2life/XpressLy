@@ -69,6 +69,29 @@ const server = app.listen(8080, () => {
 		})
 	})
 
+	app.post('/users/profilePicture', userImageUpload.single('file'), (req, res) => {
+		const user = new User();
+		user.username = req.body.username;
+		user.image = req.file.filename;
+		const sql = `update user set image='${user.image}' where username='${user.username}'`;
+		con.query(sql, (err, result) => {
+			if (err) 
+				res.status(400).json({
+					message: 'Error updating profile picture'
+				})
+			else {
+				fs.readFile(`./users/${user.image}`, `base64`, 
+					(err, base64Image) => { 
+						const dataUrl = `data:image/jpeg;base64, ${base64Image}` 
+						return res.send(dataUrl); 
+					} 
+				);
+
+			}
+		})
+	})
+
+
 	const vendorStorage = multer.diskStorage({
 			dest: (req, file, cb) => {
 				cb(null, './vendor/');
@@ -102,12 +125,37 @@ const server = app.listen(8080, () => {
 		})
 	})
 
+
+	app.post('/vendors/profilePicture', vendorImageUpload.single('file'), (req, res) => {
+		const user = new User();
+		user.username = req.body.username;
+		user.image = req.file.filename;
+		const sql = `update vendor set image='${user.image}' where username='${user.username}'`;
+		con.query(sql, (err, result) => {
+			if (err) 
+				res.status(400).json({
+					message: 'Error updating profile picture'
+				})
+			else {
+				fs.readFile(`./vendor/${user.image}`, `base64`, 
+					(err, base64Image) => { 
+						const dataUrl = `data:image/jpeg;base64, ${base64Image}` 
+						return res.send(dataUrl); 
+					} 
+				);
+
+			}
+		})
+	})
+
+
+
+
 	app.get('/organizations', jsonParser, (req, res) => {
 		const sql = "select * from organization";
 		con.query(sql, (err, result) => {
 			const response = result;
 			getOrgImages(response);
-					console.log('outside');
 			res.status(200).send(response);
 		})
 	})
@@ -119,7 +167,6 @@ const server = app.listen(8080, () => {
 					(err, base64Image) => { 
 						const dataUrl = `data:image/jpeg;base64, ${base64Image}` 
 						resp.image = dataUrl; 
-						console.log('inside')
 					})
 				}
 			}
@@ -145,6 +192,60 @@ const server = app.listen(8080, () => {
 		})
 	})
 
+
+	app.get('/depositSlips/:transactionId', jsonParser, (req, res) => {
+		console.log('here');
+		const transactionId = req.params.transactionId;
+		const sql = `select image from transaction where id='${transactionId}'`;
+		con.query(sql, (err, result) => {
+			if (err) {
+				console.log(err);
+			}
+
+			if (result && result.length) {
+				console.log(result[0].image);
+				//res.status(200).sendFile(`users/${result[0].image}`, { root: '.' });
+				fs.readFile(`./vendors/slips/${result[0].image}`, `base64`, 
+					(err, base64Image) => { 
+						const dataUrl = `data:image/jpeg;base64, ${base64Image}` 
+						return res.send(dataUrl); 
+					} 
+				);
+			}
+		})
+	})
+
+
+
+	app.get('/users/:username', jsonParser, (req, res) => {
+		const username = req.params.username
+		const sql = `select * from user where username='${username}'`;
+		con.query(sql, (err, result) => {
+			res.status(200).json(result[0]);
+		})
+	});
+
+
+	app.get('/vendors/:username', jsonParser, (req, res) => {
+		const username = req.params.username
+		const sql = `select * from vendor where username='${username}'`;
+		con.query(sql, (err, result) => {
+
+			if (err)
+				console.log(err);
+			res.status(200).json(result[0]);
+		})
+	});
+
+
+
+	app.get('/organizations/:username', jsonParser, (req, res) => {
+		const username = req.params.username
+		const sql = `select * from organization where username='${username}'`;
+		con.query(sql, (err, result) => {
+			res.status(200).json(result[0]);
+		})
+	});
 
 	app.get('/organizations/profilePicture/:username', jsonParser, (req, res) => {
 		const username = req.params.username
@@ -190,28 +291,60 @@ const server = app.listen(8080, () => {
 
 
 	app.get('/users', jsonParser, (req, res) => {
+		let users = [];
 		const sql = "select * from user";
 		con.query(sql, (err, result) => {
-			res.status(200).json(result);
+			users = users.concat(result);
+			users.forEach(user => {
+				user.type = 'Individual';
+			})
+			con.query("select * from vendor", (err, result) => {
+				users = users.concat(result);
+
+				users.forEach(user => {
+					if (!user.type)
+						user.type = 'Vendor';
+				})
+				con.query("select * from organization", (err, result) => {
+					users = users.concat(result);
+
+					users.forEach(user => {
+						if (!user.type)
+							user.type = 'Organization';
+					})
+
+					res.status(200).json(users);
+				})
+			})
 		})
 	})
 
 
 	app.get('/dashboard/:isWithdrawl', jsonParser, (req, res) => {
 		let data = {};
-			console.log('data', req.params)
+			console.log('data', req.params.isWithdrawl)
 		const sql = "select * from user";
 		con.query(sql, (err, result) => {
 			data.numberOfUsers = result.length;
-			let query = `select * from transaction`;
+			let query = `select * from transaction where receiver='admin'`;
 			if (req.params && req.params.isWithdrawl==='true')
-				query += ` where isWithdrawl=true`;
+				query += ` and isWithdrawl=true`;
 
+			console.log(query)
+			data.numberOfTransactions = 0;
+			data.numberOfWithdrawls = 0;
+			data.numberOfDeposits = 0;
+			data.transactions = [];
 			con.query(query, (err, result) => {
-				data.numberOfTransactions = result.length;
-				data.numberOfWithdrawls = result.filter(r => r.isWithdrawl).length;
-				data.numberOfDeposits = data.numberOfTransactions - data.numberOfWithdrawls;
-				data.transactions = result;
+				if (err) {
+					console.log(err);
+				}
+				if (result) {
+					data.numberOfTransactions = result.length;
+					data.numberOfWithdrawls = result.filter(r => r.isWithdrawl).length;
+					data.numberOfDeposits = data.numberOfTransactions - data.numberOfWithdrawls;
+					data.transactions = result;
+				}
 				res.status(200).json(data);
 			})
 		})
@@ -231,6 +364,7 @@ const server = app.listen(8080, () => {
 		const organization = new Organization();
 		organization.name = req.body.name;
 		organization.representativeFullName = req.body.representativeFullName;
+		organization.purposeStatement = req.body.purposeStatement;
 		organization.username = req.body.username;
 		organization.password = req.body.password;
 		organization.phoneNumber = req.body.phoneNumber;
@@ -252,6 +386,34 @@ const server = app.listen(8080, () => {
 		})
 	})
 
+
+	app.post('/organizations/profilePicture', orgImageUpload.single('file'), (req, res) => {
+		const user = new User();
+		user.username = req.body.username;
+		user.image = req.file.filename;
+		const sql = `update organization set image='${user.image}' where username='${user.username}'`;
+		con.query(sql, (err, result) => {
+			if (err) 
+				res.status(400).json({
+					message: 'Error updating profile picture'
+				})
+			else {
+				fs.readFile(`./orgs/${user.image}`, `base64`, 
+					(err, base64Image) => { 
+						const dataUrl = `data:image/jpeg;base64, ${base64Image}` 
+						return res.send(dataUrl); 
+					} 
+				);
+
+			}
+		})
+	})
+
+
+
+
+
+
 	const storage = multer.diskStorage({
 			dest: (req, file, cb) => {
 				cb(null, './vendors/slips');
@@ -263,9 +425,10 @@ const server = app.listen(8080, () => {
 	app.post('/vendors/topup', upload.single('file'), (req, res) => {
 		const amount = req.body.amount;
 		const username = req.body.username;
+		const filename = req.file.filename;
 		new VendorTopupUseCase().initiate(username, amount);
 
-		con.query(`insert into transaction (receiver, initiator, amount, isWithdrawl, type, transactionDate, status) values ('admin', '${username}', '${amount}', false, 'Vendor', '${new Date().toString()}', 'PENDING')`, (err, result) => {
+		con.query(`insert into transaction (receiver, initiator, amount, isWithdrawl, type, transactionDate, status, image) values ('admin', '${username}', '${amount}', false, 'Vendor', '${new Date().toString()}', 'PENDING', '${filename}')`, (err, result) => {
 		if (err) {
 			console.log(err)
 			res.status(400).json({
@@ -331,7 +494,6 @@ const server = app.listen(8080, () => {
 		}
 
 		const newPassword = (Math.random() + 1).toString(36).substring(7);
-		console.log(newPassword);
 		const sql = `update ${table} set password='${newPassword}' where email='${req.body.email}'`;
 		con.query(sql, (err, result) => {
 			if (err) {
@@ -341,15 +503,15 @@ const server = app.listen(8080, () => {
 				})
 			} else {
 				let transporter = nodemailer.createTransport({
-				  service: 'gmail',
+				  service: 'hotmail',
 				  auth: {
-					user: 'youremail@gmail.com',
-					pass: 'yourpassword'
+					user: 'xpresslyweb@outlook.com',
+					pass: 'Samip@123'
 				  }
 				});
 
 				let mailOptions = {
-				  from: 'youremail@gmail.com',
+				  from: 'xpresslyweb@outlook.com',
 				  to: req.body.email,
 				  subject: 'Reset Password',
 				  text: 'Your password is: ' + newPassword
@@ -446,16 +608,34 @@ const server = app.listen(8080, () => {
 				res.status(400).json({
 					message: 'Error loading transactions'
 				})
-			} else
-				res.status(200).json({
-					result 
+			} else {
+				const transactions = result;
+				getDepositSlips(transactions)
+				res.status(200).send({
+					transactions 
 				})
+			}
 		})
 	})
 
 
+	function getDepositSlips(response) {
+			for(const resp of response) {
+				if (resp.image) {
+					readFileAsync(`./vendors/slips/${resp.image}`, `base64`, 
+					(err, base64Image) => { 
+						const dataUrl = `data:image/jpeg;base64, ${base64Image}` 
+						resp.image = dataUrl; 
+					})
+				}
+			}
+
+	}
+
+
 	app.get('/withdrawls', jsonParser, (req, res) => {
 		const receiver = req.body.receiver;
+		console.log(receiver);
 		const sql = `select * from transaction where receiver='${receiver}' and isWithdrawl=true`;
 		con.query(sql, (err, result) => {
 			if (err) {
@@ -463,10 +643,12 @@ const server = app.listen(8080, () => {
 				res.status(400).json({
 					message: 'Error loading transactions'
 				})
-			} else
+			} else {
+				console.log(result);
 				res.status(200).json({
 					result 
 				})
+			}
 		})
 	})
 
@@ -569,6 +751,7 @@ const server = app.listen(8080, () => {
 	app.post('/users/send', jsonParser, (req, res) => {
 		const senderUsername = req.body.sender;
 		const receiverUsername = req.body.receiver;
+		console.log(senderUsername, '   ', receiverUsername);
 		const amount = Number(req.body.amount);
 
 		const sendMoneyUseCase = new SendMoneyUseCase();
@@ -666,6 +849,8 @@ const server = app.listen(8080, () => {
 	app.post('/users/send/org/', jsonParser, (req, res) => {
 		const senderUsername = req.body.sender;
 		const organizationId = req.body.receiver;
+
+		console.log(req.body.receiver);
 		const amount = Number(req.body.amount);
 
 		console.log(organizationId)
@@ -696,7 +881,9 @@ const server = app.listen(8080, () => {
 											console.log(err);
 											throw new Error({message: 'Error donating to organization'});
 										} else {
+											con.query(`insert into transaction (receiver, initiator, amount, isWithdrawl, type, transactionDate, status) values ('${receiver.username}', '${senderUsername}', '${amount}', false, 'Individual', '${new Date().toString()}', 'APPROVED')`, (err, result) => {
 											res.status(200).json({message: 'Money successfully sent', availableBalance: sender.availableBalance});
+											});
 										}
 									});
 								}
@@ -891,7 +1078,7 @@ const server = app.listen(8080, () => {
 							throw new Error({message: 'Error updating hold balance'});
 						} else {
 
-							con.query(`insert into transaction (receiver, initiator, amount, isWithdrawl, type, transactionDate, status) values ('admin', '${username}', '${amount}', true, 'Vendor', '${new Date().toString()}', 'PENDING')`, (err, result) => {
+							con.query(`insert into transaction (receiver, initiator, amount, isWithdrawl, type, transactionDate, status) values ('admin', '${username}', '${amount}', true, 'Organization', '${new Date().toString()}', 'PENDING')`, (err, result) => {
 								console.log('Transactions updated');
 							})
 

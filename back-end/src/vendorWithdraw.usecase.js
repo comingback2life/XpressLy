@@ -13,7 +13,7 @@ class VendorWithdrawUsecase {
 		transaction.amount = amount;
 		transaction.remarks = `withdraw request of amount ${amount} by ${vendor.username} with bank ${bankName} and account number ${accountNumber}`;
 		//this.admin.withdrawRequests.push(transaction);
-		vendor.holdBalance += amount;
+		vendor.holdBalance = Number(vendor.holdBalance) + Number(amount);
 	}
 }
 
