@@ -14,7 +14,6 @@
 
     <!-- Custom CSS-->
     <link rel="stylesheet" href="admin.css">
-<<<<<<< HEAD
 	  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
     <title>Admin Dashboard</title>
@@ -41,25 +40,36 @@
 
 
 		function getDashboard() {
-			axios.get('http://localhost:8080/dashboard/false').then(response => {
-				console.log(response.data)
+			axios.get('http://localhost:8080/dashboard/false', {
+				headers: {
+					'Authorization': window.localStorage.getItem('token'),
+					username: window.localStorage.getItem('username')
+				}
+			}).then(response => {
 				document.getElementById('dashboardNumberOfUsers').innerHTML = response.data.numberOfUsers;
 				document.getElementById('dashboardNumberOfTransactions').innerHTML = response.data.numberOfTransactions;
 				document.getElementById('dashboardNumberOfWithdrawls').innerHTML = response.data.numberOfWithdrawls;
 				document.getElementById('dashboardNumberOfDeposits').innerHTML = response.data.numberOfDeposits;
-
 
 				response.data.transactions.forEach(transaction => {
 					const row = document.createElement('tr');
 					let actions = `<button class="approve" onclick="approveTransaction(${transaction.id})"> <span><i class="fas fa-check-circle"></i></span> Approve</button>
 								<button class="decline" onclick="rejectTransaction(${transaction.id})"> <span><i class="fas fa-times-circle"></i></span> Decline</button>`;
 
-					if (transaction.status !== 'PENDING') {
+					if (transaction.status !== 'PENDING' || transaction.receiver !== 'admin') {
 						actions = '';
 					}
-					row.innerHTML = `<td>${transaction.initiator}</td>
+					rowHtml = `<td>${transaction.initiator}</td>
 						<td>${transaction.type}</td>
-						<td>${transaction.transactionDate}</td>
+						<td>${transaction.isWithdrawl ? 'Withdraw' : 'Topup'}</td>`;
+
+						if (transaction.isWithdrawl) {
+							rowHtml += `<td></td>`;
+						} else {
+							//rowHtml += `<td><a id="href${transaction.id}"href="" target="_blank"><img src="" id="${transaction.id}" style="height: 50px; width: 50px;"/></a></td>`;
+							rowHtml += `<td><img src="" id="${transaction.id}" style="height: 50px; width: 50px;cursor: pointer;"/></td>`;
+						}
+						rowHtml += `<td>${transaction.transactionDate}</td>
 						<td>${transaction.amount}</td>
 						<td>${transaction.id}</td>
 						<td><span class="status pending">${transaction.status}</span></td>
@@ -68,20 +78,45 @@
 								${actions}
 							</div>
 						</td>`;
+
+					row.innerHTML = rowHtml;
 					document.getElementById('dashboardTransactionsLog').appendChild(row);
+					getDepositSlip(transaction.id);
 				})
 			}).catch(error => {
-				console.log(error)
-				showAlert( `<div class="alert alert-danger" role="alert"> ${error.response.data.message} </div>`)
+				if (error.response.status === 403)
+					window.location.replace('./signup.html');
+				else {
+					console.log(error)
+					showAlert( `<div class="alert alert-danger" role="alert"> ${error.response.data.message} </div>`)
+				}
 			})
 
 		}
 
-	</script>
-=======
+		function getDepositSlip(transactionId) {
+			axios.get('http://localhost:8080/depositSlips/' + transactionId).then(response => {
+				console.log(response.data)
+					document.getElementById(transactionId).src = response.data;
+				//document.getElementById(`href${transactionId}`).href = response.data;
+				document.getElementById(transactionId).addEventListener('click', (evt) => {
+					console.log('clicked');
+					const image = document.getElementById(transactionId).cloneNode()
+					image.style.height = ''
+					image.style.width = ''
+				  var v = window.open("")
+					//v.document.write(document.getElementById(transactionId).outerHTML);
+					v.document.write(image.outerHTML);
 
-    <title>Admin Dashboard</title>
->>>>>>> 38dbdf04f9815de8242888d8359135134747dcaf
+});
+			}).catch(error => {
+				console.log(error)
+			})
+
+		}
+
+
+	</script>
 </head>
 <body>
     <div class="container">
@@ -118,12 +153,6 @@
                     </a>
                 </li>
                 <li>
-                    <a href="admin_credentials.html">
-                        <span class="icon"><i class="fas fa-cogs"></i></span>
-                        <span class="title">Login Credentials</span>
-                    </a>
-                </li>
-                <li>
                     <a href="signup.html">
                         <span class="icon"><i class="fas fa-sign-out-alt"></i></span>
                         <span class="title">Log Out</span>
@@ -143,13 +172,9 @@
             </div>
             <!-- Card Box Display -->
             <div class="card-container">
-                <div class="card card1">
+                <div onclick="window.location.href='./admin_users.html'" class="card card1">
                     <div>
-<<<<<<< HEAD
                         <div id="dashboardNumberOfUsers" class="numbers">12</div>
-=======
-                        <div class="numbers">12</div>
->>>>>>> 38dbdf04f9815de8242888d8359135134747dcaf
                         <div class="card-name">Users</div>
                     </div>
                     <div class="card-icon">
@@ -158,11 +183,7 @@
                 </div>
                 <div class="card card2">
                     <div>
-<<<<<<< HEAD
                         <div id="dashboardNumberOfTransactions" class="numbers">8</div>
-=======
-                        <div class="numbers">8</div>
->>>>>>> 38dbdf04f9815de8242888d8359135134747dcaf
                         <div class="card-name">Transactions</div>
                     </div>
                     <div class="card-icon">
@@ -171,24 +192,16 @@
                 </div>
                 <div class="card card3">
                     <div>
-<<<<<<< HEAD
                         <div id="dashboardNumberOfDeposits" class="numbers">3</div>
-=======
-                        <div class="numbers">3</div>
->>>>>>> 38dbdf04f9815de8242888d8359135134747dcaf
                         <div class="card-name">Deposits</div>
                     </div>
                     <div class="card-icon">
                         <i class="fas fa-download"></i>
                     </div>
                 </div>
-                <div class="card card4">
+                <div  onclick="window.location.href='./admin_withdrawl.html'" class="card card4">
                     <div>
-<<<<<<< HEAD
                         <div id="dashboardNumberOfWithdrawls" class="numbers">0</div>
-=======
-                        <div class="numbers">0</div>
->>>>>>> 38dbdf04f9815de8242888d8359135134747dcaf
                         <div class="card-name">Withdrawals</div>
                     </div>
                     <div class="card-icon">
@@ -208,7 +221,9 @@
                         <thead>
                             <tr>
                                 <td>User</td>
-                                <td>Type</td>
+                                <td>User Type</td>
+                                <td>Transaction Type</td>
+                                <td>Deposit Slip</td>
                                 <td>Date</td>
                                 <td>Amount</td>
                                 <td>ID</td>
@@ -216,95 +231,7 @@
                                 <td>Action</td>
                             </tr>
                         </thead>
-<<<<<<< HEAD
                         <tbody id="dashboardTransactionsLog">
-=======
-                        <tbody>
-                            <tr>
-                                <td>abc@gmail.com</td>
-                                <td>Individual</td>
-                                <td>14/08/2021</td>
-                                <td>$2000</td>
-                                <td>123A2BCC3</td>
-                                <td><span class="status pending">Pending</span></td>
-                                <td>
-                                    <div class="actions">
-                                        <button class="approve"> <span><i class="fas fa-check-circle"></i></span> Approve</button>
-                                        <button class="decline"> <span><i class="fas fa-times-circle"></i></span> Decline</button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>abc@gmail.com</td>
-                                <td>Vendor</td>
-                                <td>14/08/2021</td>
-                                <td>$2000</td>
-                                <td>123A2BCC3</td>
-                                <td><span class="status pending">Pending</span></td>
-                                <td>
-                                    <div class="actions">
-                                        <button class="approve"> <span><i class="fas fa-check-circle"></i></span> Approve</button>
-                                        <button class="decline"> <span><i class="fas fa-times-circle"></i></span> Decline</button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>abc@gmail.com</td>
-                                <td>Vendor</td>
-                                <td>14/08/2021</td>
-                                <td>$2000</td>
-                                <td>123A2BCC3</td>
-                                <td><span class="status pending">Pending</span></td>
-                                <td>
-                                    <div class="actions">
-                                        <button class="approve"> <span><i class="fas fa-check-circle"></i></span> Approve</button>
-                                        <button class="decline"> <span><i class="fas fa-times-circle"></i></span> Decline</button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>abc@gmail.com</td>
-                                <td>Organization</td>
-                                <td>14/08/2021</td>
-                                <td>$2000</td>
-                                <td>123A2BCC3</td>
-                                <td><span class="status approved">Approved</span></td>
-                                <td>
-                                    <div class="actions">
-                                        <button class="approve"> <span><i class="fas fa-check-circle"></i></span> Approve</button>
-                                        <button class="decline"> <span><i class="fas fa-times-circle"></i></span> Decline</button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>abc@gmail.com</td>
-                                <td>Individual</td>
-                                <td>14/08/2021</td>
-                                <td>$2000</td>
-                                <td>123A2BCC3</td>
-                                <td><span class="status approved">Approved</span></td>
-                                <td>
-                                    <div class="actions">
-                                        <button class="approve"> <span><i class="fas fa-check-circle"></i></span> Approve</button>
-                                        <button class="decline"> <span><i class="fas fa-times-circle"></i></span> Decline</button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>abc@gmail.com</td>
-                                <td>Organization</td>
-                                <td>14/08/2021</td>
-                                <td>$2000</td>
-                                <td>123A2BCC3</td>
-                                <td><span class="status approved">Approved</span></td>
-                                <td>
-                                    <div class="actions">
-                                        <button class="approve"> <span><i class="fas fa-check-circle"></i></span> Approve</button>
-                                        <button class="decline"> <span><i class="fas fa-times-circle"></i></span> Decline</button>
-                                    </div>
-                                </td>
-                            </tr>
->>>>>>> 38dbdf04f9815de8242888d8359135134747dcaf
                         </tbody>
                     </table>
                 </div>
@@ -312,7 +239,6 @@
             </div>
         </div>
     </div>
-<<<<<<< HEAD
    <div id="alert" style="position:fixed; bottom:0; right:0; left: 0;"></div>
 
     <!-- Custom JS File -->
@@ -322,10 +248,3 @@
 	</script>
 </body>
 </html>
-=======
-
-    <!-- Custom JS File -->
-    <script src="admin.js"></script>
-</body>
-</html>
->>>>>>> 38dbdf04f9815de8242888d8359135134747dcaf

@@ -7,8 +7,8 @@ export default class DbConnection {
 	connect() {
 		this.con = createConnection({
 		  host: "localhost",
-		  user: "root",
-		  password: "Samip123",
+		  user: "xpressly",
+		  password: "xpressly",
 		  database: "xpressly"
 		});
 

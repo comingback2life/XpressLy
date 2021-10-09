@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <title>XpressLy-Faster Money Tranfer</title>
+
+  <!-- Icons -->
+  <link rel="shortcut icon" type="img/logo1.png" href="img/logoP1.png">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Vadodara&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/07ba57a91a.js" crossorigin="anonymous"></script>
+  
+  <!-- Bootstrap CSS -->
+  <link href="bootstrap/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="bootstrap/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="bootstrap/aos/aos.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+  <!-- Custom CSS-->
+  <link rel="stylesheet" href="user.css">
+
+	<script>
+		var selectedOrg;
+		function getAvailableBalance() {
+			return window.localStorage.getItem('availableBalance');
+		}
+
+		function showAlert(message, timeout) {
+			document.getElementById('alert').innerHTML = message;
+			setTimeout(() => window.location.reload(), timeout || 2000);
+		}
+
+		function sendMoneyToUser() {
+			const sender = window.localStorage.getItem('username');
+			const receiver = document.getElementById('userSendMoneyToUserReceiver').value;
+			const amount = document.getElementById('userSendMoneyToUserAmount').value;
+			axios.post('http://localhost:8080/users/send', {
+				sender, receiver, amount
+			}).then(response => {
+				console.log(response);
+				showAlert( `<div class="alert alert-success" role="alert"> ${response.data.message} </div>`)
+				window.localStorage.setItem('availableBalance', response.data.availableBalance);
+				window.localStorage.setItem('holdBalance', response.data.holdBalance);
+			}).catch(error => {
+				console.log(error)
+				showAlert( `<div class="alert alert-danger" role="alert"> ${error.response.data.message} </div>`)
+			})
+		}
+
+		function sendMoneyToOrg() {
+			const sender = window.localStorage.getItem('username');
+			const receiver = window.localStorage.getItem('selectedOrg');
+			console.log(receiver, 'receiver');
+			const amount = document.getElementById('userSendMoneyToOrgAmount').value;
+			axios.post('http://localhost:8080/users/send/org', {
+				sender, receiver, amount
+			}).then(response => {
+				console.log(response);
+				window.localStorage.setItem('availableBalance', response.data.availableBalance);
+				window.localStorage.setItem('holdBalance', response.data.holdBalance);
+				showAlert( `<div class="alert alert-success" role="alert"> ${response.data.message} </div>`)
+			}).catch(error => {
+				console.log(error)
+				showAlert( `<div class="alert alert-danger" role="alert"> ${error.response.data.message} </div>`)
+			})
+		}
+
+
+		function withdrawMoneyFromUser() {
+			const user = window.localStorage.getItem('username');
+			const vendor = document.getElementById('userWithdrawMoneyFromUserVendor').value;
+			const amount = document.getElementById('userWithdrawMoneyFromUserAmount').value;
+			axios.post('http://localhost:8080/users/withdraw', {
+				user, vendor, amount
+			}).then(response => {
+				console.log(response)
+				window.localStorage.setItem('holdBalance', response.data.holdBalance);
+				window.localStorage.setItem('code', response.data.code);
+				showAlert( `<div class="alert alert-success" role="alert"> ${response.data.message} </div>`, 5000)
+				document.getElementById('holdBalance').innerHTML = window.localStorage.getItem('holdBalance')
+			}).catch(error => {
+				console.log(error)
+				showAlert( `<div class="alert alert-danger" role="alert"> ${error.response.data.message} </div>`)
+			})
+		}
+
+		function topupMoney() {
+			const user = window.localStorage.getItem('username');
+			const vendor = document.getElementById('topupVendor').value;
+			const amount = document.getElementById('topupAmount').value;
+			axios.post('http://localhost:8080/users/topupRequest', {
+				user, vendor, amount
+			}).then(response => {
+				console.log(response)
+				window.localStorage.setItem('holdBalance', response.data.holdBalance);
+				showAlert( `<div class="alert alert-success" role="alert"> ${response.data.message} </div>`, 5000)
+				document.getElementById('holdBalance').innerHTML = window.localStorage.getItem('holdBalance')
+			}).catch(error => {
+				console.log(error)
+				showAlert( `<div class="alert alert-danger" role="alert"> ${error.response.data.message} </div>`)
+			})
+		}
+
+
+		function getVendorList() {		}
+
+
+		function displaySendMoneyForm() {
+			document.getElementById('sendMoney').style.display = 'block';
+			document.getElementById('withdrawMoney').style.display = 'none';
+		}
+
+		function displayWithdrawMoneyForm() {
+			axios.get('http://localhost:8080/vendors').then(response => {
+				for (let i=0; i<response.data.result.length; i++) {
+					const option = document.createElement('option');
+					option.innerHTML = response.data.result[i].username;
+
+					if (document.getElementById('userWithdrawMoneyFromUserVendor').childElementCount === 0)
+						document.getElementById('userWithdrawMoneyFromUserVendor').appendChild(option);
+
+					const topupOption = option.cloneNode(true);
+					if (document.getElementById('topupVendor').childElementCount === 0)
+						document.getElementById('topupVendor').appendChild(topupOption);
+				}
+			}).catch(error => {
+				console.log(error)
+			})
+		}
+
+		function changePassword() {
+			const username = window.localStorage.getItem('username');
+			const currentPassword = document.getElementById('currentPassword').value;
+			const newPassword = document.getElementById('newPassword').value;
+			const confirmPassword = document.getElementById('confirmPassword').value;
+
+			if (newPassword !== confirmPassword) {
+				showAlert( `<div class="alert alert-danger" role="alert">Passwords do not match</div>`)
+			} else {
+				axios.post('http://localhost:8080/users/password', {
+					username, currentPassword, newPassword
+				}).then(response => {
+					showAlert( `<div class="alert alert-success" role="alert"> ${response.data.message} </div>`, 5000)
+				}).catch(error => {
+					showAlert( `<div class="alert alert-danger" role="alert"> ${error.response.data.message} </div>`)
+				})
+			}
+		}
+
+		function selectOrg(org, name) {
+			window.localStorage.setItem('selectedOrg', org);
+			document.getElementById('organizationName').innerHTML = name;
+		}
+
+		function getOrganizations() {
+			axios.get('http://localhost:8080/organizations').then(response => {
+				console.log(response.data)
+				response.data.forEach(d => {
+					const card = document.createElement('div');
+					const img = getOrgProfilePicture(d.username);
+					console.log(img)
+					console.log('image')
+					card.innerHTML = `<div class="card col" style="width: 15rem;">
+						<img class="card-img-top" src="" alt="Card image cap" id="${d.username}">
+					  <div class="card-body">
+						<h5 class="card-title">${d.name}</h5>
+						<!-- Button trigger modal -->
+						<button href="#exampleModalCenter" class="btn text-white" style="background-color: #6f42c1; border-radius: 20px;" data-bs-toggle="modal" data-bs-target="#exampleModalCenter" onclick="selectOrg('${d.username}', '${d.name}')">Send Money</button>
+					  </div>
+					</div>`
+					document.getElementById('orgs').appendChild(card);
+				})
+			}).catch(error => {
+				console.log(error)
+			})
+
+		}
+
+
+		function getProfilePicture() {
+			const username = localStorage.getItem('username');
+			axios.get('http://localhost:8080/users/profilePicture/' + username).then(response => {
+				console.log(response.data)
+					document.getElementById('profilePicture').src = response.data;
+			}).catch(error => {
+				console.log(error)
+			})
+
+		}
+
+		function getOrgProfilePicture(username) {
+			axios.get('http://localhost:8080/organizations/profilePicture/' + username).then(response => {
+				console.log(response.data)
+					document.getElementById(username).src = response.data;
+			}).catch(error => {
+				console.log(error)
+			})
+
+		}
+
+
+		function getTransactions() {
+			const receiver = window.localStorage.getItem('username');
+			axios.get(`http://localhost:8080/transactions/${receiver}/`, {
+				headers: {
+					'Authorization': window.localStorage.getItem('token'),
+					username: window.localStorage.getItem('username')
+				}
+			}).then(response => {
+				console.log(response)
+
+				response.data.transactions?.forEach(transaction => {
+					const row = document.createElement('tr');
+					let actions = `<button class="approve" onclick="approveTransaction(${transaction.id})"> <span><i class="fas fa-check-circle"></i></span> Approve</button>
+								<button class="decline" onclick="rejectTransaction(${transaction.id})"> <span><i class="fas fa-times-circle"></i></span> Decline</button>`;
+
+					if (transaction.status !== 'PENDING') {
+						actions = '';
+					}
+					row.innerHTML = `<td>${transaction.initiator}</td>
+						<td>${transaction.receiver}</td>
+						<td>${transaction.isWithdrawl ? 'Withdraw': 'Topup'}</td>
+						<td>${transaction.transactionDate}</td>
+						<td>${transaction.amount}</td>
+						<td>${transaction.id}</td>
+						<td><span class="status pending">${transaction.status}</span></td>
+						<td>
+							<div class="actions">
+							</div>
+						</td>`;
+					document.getElementById('userTransactionsLog').appendChild(row);
+				})
+
+
+				// window.localStorage.setItem('holdBalance', response.data.holdBalance);
+				// alert('Withdraw request initiated');
+				// window.location.reload();
+				// document.getElementById('holdBalance').innerHTML = window.localStorage.getItem('holdBalance')
+			}).catch(error => {
+				console.log(error)
+				showAlert( `<div class="alert alert-danger" role="alert"> ${error.response.data.message} </div>`)
+			})
+
+		}
+	</script>
+</head>
+
+<body>
+  <!--- Header--->
+  <header id="header" class="header fixed-top">
+    <div class="container-fluid container-xl d-flex align-items-center justify-content-between">
+
+      <a href="index.html" class="logo d-flex align-items-center">
+        <img src="img/logoP1.png" alt="">
+        <span>pressLy</span>
+      </a>
+
+      <nav id="navbar" class="navbar">
+        <ul>
+          <li><a class="nav-link scrollto " href="user.html">Home</a></li>
+      
+          <!-- user login dropdown start-->
+          <li class="dropdown">
+            <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+              <span class="profile-ava">
+                  <img id="profilePicture" alt="" src="img/mail-avatar.jpg">
+              </span>
+              <span class="username">My Account</span>
+              <b class="caret"></b>
+            </a>
+            <ul class="dropdown-menu logout">
+              <div class="log-arrow-up"></div>
+              <li class="eborder-top"> <a href="user_profile.html"><i class="fas fa-user-alt"></i> My Profile</a></li>
+              <li><a href="#"><i class="fas fa-history"></i>Transactions</a></li>
+              <li><a href="signup.html?" class="logoutBtn "><i class="icon_key_alt"></i> Log Out</a> </li>
+      
+            </ul>
+          </li>
+          <!-- user login dropdown end -->
+        </ul>
+        <i class="bi bi-list mobile-nav-toggle"></i>
+      </nav><!-- .navbar -->
+
+    </div>
+  </header><!-- End Header -->
+
+<!-- Home Section -->
+  <!-- End Home -->
+
+
+ 
+  <!-- Transaction History -->
+  <div class="wrapper rounded row col-6 offset-3 mt-5">
+    <nav class="navbar navbar-expand-lg navbar-dark dark d-lg-flex align-items-lg-start"> <a class="navbar-brand" href="#">Transactions History</a></nav>
+ 
+    <div class="d-flex justify-content-between align-items-center mt-3">
+        <ul class="nav nav-tabs w-75">
+            <li class="nav-item"> <a class="nav-link active" href="#history">History</a> </li>
+        </ul>
+    </div>
+    <div class="table-responsive mt-3">
+        <table class="table table-dark table-borderless">
+            <thead>
+                <tr>
+                    <th scope="col">Initiated By</th>
+                    <th scope="col">Received By</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Amount</th>
+                    <th scope="col">ID</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Action</th>
+                </tr>
+            </thead>
+            <tbody id="userTransactionsLog"></tbody>
+        </table>
+    </div>
+</div>  <!-- Transaction History End -->
+
+
+
+<!--Organization Section-->
+  <!-- End Organization -->
+
+
+  <!-- Bootstrap JS Files -->
+  <script src="bootstrap/bootstrap/js/bootstrap.bundle.js"></script>
+  <script src="bootstrap/aos/aos.js"></script>
+  <script src="bootstrap/swiper/swiper-bundle.min.js"></script>
+  <script src="bootstrap/glightbox/js/glightbox.min.js"></script>
+
+  <!-- Custom JS File -->
+  <script src="user.js"></script>
+	<script>
+		getProfilePicture();
+		getTransactions();
+	</script>
+
+</body>
+
+</html>

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "main": "index.js",
-  "author": "Samip Pokharel ,Gorakh Shetty , ICT Group2",
+  "author": "samip",
   "license": "GPLv3",
   "devDependencies": {
     "@babel/preset-env": "^7.14.8",

@@ -43,6 +43,29 @@
 			})
 		}
 
+		function changeProfilePicture() {
+			const username = window.localStorage.getItem('username');
+			const profilePicture = document.querySelector("#newProfilePicture");
+
+			const formData = new FormData();
+			formData.append("username", username);
+			formData.append("file", profilePicture.files[0]);
+
+			axios.post('http://localhost:8080/vendors/profilePicture', formData, {
+				headers: {
+				  'Content-Type': 'multipart/form-data'
+				}
+			}).then(response => {
+				document.getElementById('profilePicture').src = response.data;
+				document.getElementById('bigProfilePicture').src = response.data;
+			}).catch(error => {
+				alert(error.response.data.message);
+			})
+		}
+
+
+
+
 		function changePassword() {
 			const username = window.localStorage.getItem('username');
 			const currentPassword = document.getElementById('currentPassword').value;
@@ -148,6 +171,7 @@
 			axios.get('http://localhost:8080/vendors/profilePicture/' + username).then(response => {
 				console.log(response.data)
 					document.getElementById('profilePicture').src = response.data;
+					document.getElementById('bigProfilePicture').src = response.data;
 			}).catch(error => {
 				console.log(error)
 			})
@@ -155,22 +179,28 @@
 		}
 
 
+		function getProfile() {
+			const username = localStorage.getItem('username');
+			axios.get('http://localhost:8080/vendors/' + username).then(response => {
+				console.log(response.data)
+					document.getElementById('username').innerHTML = response.data.vendorName;
+					document.getElementById('userusername').innerHTML = response.data.username;
+					document.getElementById('useremail').innerHTML = response.data.email;
+					document.getElementById('useravailablebalance').innerHTML = response.data.availableBalance;
+					document.getElementById('userholdbalance').innerHTML = response.data.holdBalance;
+			}).catch(error => {
+				console.log(error)
+			})
+		}
+
+
 
 		function getTransactions() {
 			const receiver = window.localStorage.getItem('username');
+			axios.get(`http://localhost:8080/transactions/${receiver}`).then(response => {
+				console.log(response)
 
-			if (!receiver) {
-				window.location.replace('./signup.html');
-			}
-
-
-			axios.get(`http://localhost:8080/transactions/${receiver}`, {
-				headers: {
-					'Authorization': window.localStorage.getItem('token'),
-					username: window.localStorage.getItem('username')
-				}
-			}).then(response => {
-				response.data.transactions?.forEach(transaction => {
+				response.data.result.forEach(transaction => {
 					const row = document.createElement('tr');
 					let actions = `<button class="approve" onclick="approveTransaction(${transaction.id})"> <span><i class="fas fa-check-circle"></i></span> Approve</button>
 								<button class="decline" onclick="rejectTransaction(${transaction.id})"> <span><i class="fas fa-times-circle"></i></span> Decline</button>`;
@@ -198,11 +228,8 @@
 				// window.location.reload();
 				// document.getElementById('holdBalance').innerHTML = window.localStorage.getItem('holdBalance')
 			}).catch(error => {
-				if (error.response.status === 403)
-					window.location.replace('./signup.html');
-				else {
-					showAlert( `<div class="alert alert-danger" role="alert"> ${error.response.data.message} </div>`)
-				}
+				console.log(error)
+				showAlert( `<div class="alert alert-danger" role="alert"> ${error.response.data.message} </div>`)
 			})
 
 		}
@@ -222,8 +249,6 @@
       <nav id="navbar" class="navbar">
         <ul>
             <li><a class="nav-link scrollto " href="vendor.html">Home</a></li>
-            <li><a class="nav-link scrollto " href="home" data-bs-toggle="modal" data-bs-target="#sendMoneyModal" >Send Money</a></li>
-            <li><a class="nav-link scrollto " href="home" data-bs-toggle="modal" data-bs-target="#withdrawMoneyModel" >Withdraw Money</a></li>
        
           <!-- user login dropdown start-->
           <li class="dropdown">
@@ -236,8 +261,7 @@
             </a>
             <ul class="dropdown-menu logout">
               <div class="log-arrow-up"></div>
-              <li class="eborder-top"> <a href="vendor_profile.html"><i class="fas fa-user-alt"></i> My Profile</a></li>
-<li><a class="nav-link scrollto " href="#home" data-bs-toggle="modal" data-bs-target="#changePasswordModal">Change Password</a></li>
+              <li class="eborder-top"> <a href="#"><i class="fas fa-user-alt"></i> My Profile</a></li>
               <li><a href="signup.html?" class="logoutBtn "><i class="icon_key_alt"></i> Log Out</a> </li>
 			  
             </ul>
@@ -254,185 +278,54 @@
   <section id="home" class="home d-flex align-items-center">
     <div class="container">
       <div class="row">
-        <div class="col-lg-6 d-flex flex-column justify-content-center">
-          <div class="col-lg-6 exchangeBox d-flex flex-column" data-aos="fade-left" data-aos-delay="200">
-            <div class="testContainer">
-              <div class="currency">
-                <ul class="balance-view">
-                  <li class="available-balance">
-                    <label>Available Balance</label>
-                    <h3>
-                      <strong id="availableBalance" class="amount">$5000</strong>
-                    </h3>
-                    <label>Hold Balance</label>
-                    <label id="holdBalance">5000</label>
-                    <div class="load-balance" data-bs-toggle="modal" data-bs-target="#topupModal">+</div>
-                    
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-lg-6 hero-img" data-aos="zoom-out" data-aos-delay="200">
-          <img src="img/transfer3.svg" class="img-fluid" alt="">
-        </div>
+		  <div class="d-flex justify-content-center">
+		<div class="col-lg-4">
+			  <img src="img/transfer3.svg" class="img-fluid" id="bigProfilePicture" alt="">
+			  <div class="border-1" style="margin-left: 100px;">
+				  <input type="file" id="newProfilePicture">
+			  </div>
+				<div class="border-1 mt-5" style="margin-left: 100px;" onclick="changeProfilePicture()">
+			  <label class="btn btn-secondary ml-5">
+				  Change Profile Picture
+				</label>
+			  </div>
+			</div>
+		<div class="col-lg-8">
+				<div class="mt-5">
+					<ul>
+						<li class="mt-5">Name: <span id="username"></span></li>
+						<li class="mt-5">Username: <span id="userusername"></span></li>
+						<li class="mt-5">Email: <span id="useremail"></span></li>
+						<li class="mt-5">Available Balance: <span id="useravailablebalance"></span></li>
+						<li class="mt-5">Hold Balance: <span id="userholdbalance"></span></li>
+					</ul>
+				</div>
+			</div>
+		  </div>
         </div>
       </div>
-    </div>
   </section><!-- End Home -->
 
 
    <!-- Change Password Modal -->
-   <div class="modal fade" id="changePasswordModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLongTitle">Change Password</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div class="input-field" style="grid-template-columns: 100%" >
-            <input type="password" id="currentPassword" placeholder="Enter current password" autocomplete="off" min="0"/>
-          </div>
-		  <div class="input-field" style="grid-template-columns: 100%" >
-            <input type="password" id="newPassword" placeholder="Enter new password" autocomplete="off" min="0"/>
-          </div>
-		  <div class="input-field" style="grid-template-columns: 100%" >
-            <input type="password" id="confirmPassword" placeholder="Confirm new password" autocomplete="off" min="0"/>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-info" data-bs-dismiss="modal" onclick="changePassword()">Submit</button>
-        </div>
-      </div>
-    </div>
-  </div>
 
 
     <!-- TopUP Modal  -->
-   <div class="modal fade" id="topupModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLongTitle">Request Admin</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-            <div class="input-field">
-                <i class="fas fa-dollar-sign"></i>
-                <input type="text" id="vendorTopupAmount" placeholder="Enter Amount" required/>
-            </div>
-
-            <label class="form-label" for="customFile">Upload digital slip</label>
-            <input type="file" class="form-control" id="customFile" />
-           
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-modal" onclick="topupVendor()">Top Up</button>
-        </div>
-      </div>
-    </div>
-  </div> 
   <!-- End TopUP Model -->
 
 
 
     <!-- Send money Modal  -->
-   <div class="modal fade" id="sendMoneyModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="sendMoneyModalLongTitle">Send Money</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-			<div class="input-field">
-                <i class="fas fa-dollar-sign"></i>
-                <input type="text" id="vendorSendMoneyReceiver" placeholder="Receiver" required/>
-            </div>
-            <div class="input-field">
-                <i class="fas fa-dollar-sign"></i>
-                <input type="text" id="vendorSendMoneyAmount" placeholder="Enter Amount" required/>
-            </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-modal" onclick="sendMoney()">Send</button>
-        </div>
-      </div>
-    </div>
-  </div> 
   <!-- End Send money Model -->
 
 
 
 
   <!-- Withdraw Modal  -->
-  <div class="modal fade" id="withdrawMoneyModel" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLongTitle">Withdraw Request</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-            <div class="input-field">
-                <i class="fas fa-user"></i>
-                <input id="vendorWithdrawMoneyFromVendorBankName" type="text" placeholder="Bank Name" required/>
-            </div>
-            <div class="input-field">
-                <i class="fas fa-dollar-sign"></i>
-                <input type="text" id="vendorWithdrawMoneyFromVendorAmount" placeholder="Enter Amount" required/>
-            </div>
-            <div class="input-field">
-                <i class="fas fa-key"></i>
-                <input id="vendorWithdrawMoneyFromVendorBsbNumber" type="text" placeholder="BSB Number" required/>
-            </div>
-            <div class="input-field">
-                <i class="fas fa-key"></i>
-                <input id="vendorWithdrawMoneyFromVendorAccountNumber" type="text" placeholder="Account Number" required/>
-            </div>
-
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-modal" onclick="withdrawMoneyFromVendor()">Withdraw</button>
-        </div>
-      </div>
-    </div>
-  </div> 
   <!-- End Withdraw Model -->
  
   <!-- Transaction History -->
-  <div class="wrapper rounded">
-    <nav class="navbar navbar-expand-lg navbar-dark dark d-lg-flex align-items-lg-start"> <a class="navbar-brand" href="#">Transactions History</a></nav>
- 
-    <div class="d-flex justify-content-between align-items-center mt-3">
-        <ul class="nav nav-tabs w-75">
-            <li class="nav-item"> <a class="nav-link active" href="#history">History</a> </li>
-        </ul> 
-    </div>
-    <div class="table-responsive mt-3">
-        <table class="table table-dark table-borderless">
-            <thead>
-                <tr>
-                    <th scope="col">User</th>
-                    <th scope="col">Type</th>
-                    <th scope="col">Date</th>
-                    <th scope="col">Amount</th>
-                    <th scope="col">ID</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Action</th>
-                </tr>
-            </thead>
-            <tbody id="vendorTransactionsLog"></tbody>
-        </table>
-    </div>
-</div>  <!-- Transaction History End -->
+    <!-- Transaction History End -->
    <div id="alert" style="position:fixed; bottom:0; right:0; left: 0;"></div>
 
   <!-- Bootstrap JS Files -->
@@ -444,9 +337,7 @@
   <!-- Custom JS File -->
   <script src="vendor.js"></script>
 	<script>
-		document.getElementById('availableBalance').innerHTML = window.localStorage.getItem('availableBalance')
-		document.getElementById('holdBalance').innerHTML = window.localStorage.getItem('holdBalance')
-		getTransactions();
+		getProfile();
 		getProfilePicture();
 	</script>
 

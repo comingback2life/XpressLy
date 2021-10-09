@@ -16,7 +16,6 @@
     <link rel="stylesheet" href="admin_gm.css">
 
     <title>Admin Dashboard</title>
-<<<<<<< HEAD
 	  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
 	<script>
@@ -38,8 +37,6 @@
 
 
 	</script>
-=======
->>>>>>> 38dbdf04f9815de8242888d8359135134747dcaf
 </head>
 <body>
     <div class="container">
@@ -76,12 +73,6 @@
                     </a>
                 </li>
                 <li>
-                    <a href="admin_credentials.html">
-                        <span class="icon"><i class="fas fa-cogs"></i></span>
-                        <span class="title">Login Credentials</span>
-                    </a>
-                </li>
-                <li>
                     <a href="signup.html">
                         <span class="icon"><i class="fas fa-sign-out-alt"></i></span>
                         <span class="title">Log Out</span>
@@ -101,7 +92,7 @@
             </div>
             <!-- Card Box Display -->
             <div class="card-container">
-                <div class="card card1">
+                <div class="card card1" onclick="window.location.href='./admin_users.html'" >
                     <div>
                         <div class="numbers">5</div>
                         <div class="card-name">Users</div>
@@ -128,7 +119,7 @@
                         <i class="fas fa-download"></i>
                     </div>
                 </div>
-                <div class="card card4">
+                <div class="card card4" onclick="window.location.href='./admin_withdrawl.html'" >
                     <div>
                         <div class="numbers">0</div>
                         <div class="card-name">Withdrawals</div>
@@ -148,24 +139,14 @@
                     </div>
                     <div class="show-balance">
                         <label for="balance-display">Total balance</label>
-<<<<<<< HEAD
                         <h3 id="availableBalance"><strong>$10,000</strong></h3>
-=======
-                        <h3 id="balance-display"><strong>$10,000</strong></h3>
->>>>>>> 38dbdf04f9815de8242888d8359135134747dcaf
                     </div>
                     <div class="input-field">
                         <label for="generate-money"> Enter amount to generate</label>
                         <i class="fas fa-dollar-sign"></i>
-<<<<<<< HEAD
                         <input id="adminGenerateAmount" type="text" placeholder="Amount" required/>
                     </div>
                     <button onclick="generateMoney()">Generate</button>
-=======
-                        <input type="text" id="generate-money" placeholder="Amount" required/>
-                    </div>
-                    <button>Generate</button>
->>>>>>> 38dbdf04f9815de8242888d8359135134747dcaf
                 </div>
 
             </div>
@@ -174,7 +155,6 @@
 
     <!-- Custom JS File -->
     <script src="admin_gm.js"></script>
-<<<<<<< HEAD
 	<script>
 		document.getElementById('availableBalance').innerHTML = window.localStorage.getItem('availableBalance')
 	</script>
@@ -182,7 +162,3 @@
 
 </body>
 </html>
-=======
-</body>
-</html>
->>>>>>> 38dbdf04f9815de8242888d8359135134747dcaf
